@@ -17,10 +17,11 @@ Response:
 
  - ok, total_number, previous_cursor, next_cursor: Same old stuff.
  - maxPage: Total number of pages.
- - saveCache: an application level directive telling the client to cache resutls. Irrelevent.
+ - saveCache: an application level directive telling the client to cache resutls. Irrelevent.1
  - mblogList: The actual results. A dict of tweets, tweet id being the key.
  - tweet content: 
      - info: [username, publish-time, publish-agent, number of retweets, number of comments]
+         publish-time format: 'yyyy-mm-dd HH:MM:SS'(before 2012) or 'mm月dd日 HH:MM' (2012) or 'MM分钟前' or '今天 HH:MM'
      - distance, LBS, location: sort of geo infomation.
      - cont: content of the tweet.
      - uid: user id.
