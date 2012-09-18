@@ -28,3 +28,6 @@ pip-log.txt
 
 # PyCharm meta files
 .idea/
+
+# couchDB python admin script
+soup/couch/admin.py
