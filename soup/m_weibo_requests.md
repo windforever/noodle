@@ -17,19 +17,19 @@ Response:
 
  - ok, total_number, previous_cursor, next_cursor: Same old stuff.
  - maxPage: Total number of pages.
- - saveCache: an application level directive telling the client to cache resutls. Irrelevent.1
+ - saveCache: an application level directive telling the client to cache results. Irrelevent.1
  - mblogList: The actual results. A dict of tweets, tweet id being the key.
  - tweet content: 
      - info: [username, publish-time, publish-agent, number of retweets, number of comments]
          publish-time format: 'yyyy-mm-dd HH:MM:SS'(before 2012) or 'mm月dd日 HH:MM' (2012) or 'MM分钟前' or '今天 HH:MM'
-     - distance, LBS, location: sort of geo infomation.
+     - distance, LBS, location: sort of geo information.
      - cont: content of the tweet.
      - uid: user id.
      - img: user avartar.
      - fans: number of fans of the user.
      - gender: gender.
      - bid: ?
-     - pic: picture in the tweet. may contain uris refering to images in different resolutions. 
+     - pic: picture in the tweet. may contain uris referring to images in different resolutions.
      - pos: page that initiated the search request.
      - vip: if the user is vip.
      - attitudes: ?. e.g., ['total': 0, 'maxoid': 0].
@@ -71,11 +71,11 @@ Same as the retweets request params.
 
 Response:
 
-Same as the retweets response. Differnce is in data, where values are comments. Comment structure is an array:
+Same as the retweets response. Difference is in data, where values are comments. Comment structure is an array:
  
  - 0: user id
  - 1: user name
- - 2: a list of uris refering to status images, e.g., 微博达人
+ - 2: a list of uris referring to status images, e.g., 微博达人
  - 3: user avatar
  - 4: comment content
  - 5: publish time - format(mm月dd日 HH:MM)
