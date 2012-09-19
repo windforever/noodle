@@ -37,9 +37,6 @@
         now = new Date();
 
     var utils = {
-        init:function () {
-
-        },
         checkDateRange:function (date, start, end) {
             start = typeof start !== "undefined" ? start : start_date;
             end = typeof end !== "undefined" ? end : end_date;
@@ -74,9 +71,6 @@
             var now = new Date();
             return '[' + [now.getHours(), now.getMinutes(), now.getSeconds()].join(':') + ']'
         },
-        log: function (name, info) {
-            console.log(this.now() + name + " - " + info);
-        },
         parseDate: function (dateString) {
             var match = [];
             switch (dateString.length) {
@@ -100,15 +94,28 @@
             name = typeof name !== "undefined" ? name : 'soup';
             var obj = {
                 success:function (data) {
-                    utils.log(name, "[Success]" + JSON.stringify(data).substring(0, 100));
+                    logger.log(name, "[Success]" + JSON.stringify(data).substring(0, 100));
                 },
                 error:function (status) {
-                    utils.log(name, "[Error]" + JSON.stringify(status));
+                    logger.log(name, "[Error]" + JSON.stringify(status));
                 }
             };
             return this.update_obj(obj, other);
         }
     };
+
+
+
+
+    var logger = {
+        $logger: null,
+        log: function (name, info) {
+            var content = utils.now() + " " + name + " - " + info;
+            console.log(content);
+            $("<p class='log'>" + content + "</p>").appendTo(logger.$logger);
+        }
+    };
+
 
     var Interval = function (min, max) {
         // this class manages the wait time between requests.
@@ -120,10 +127,10 @@
 
         this.get = function(ok_last) {
             if (ok_last) { // last request is successful;
-                wait -= 20000;
+                wait -= 200000;
                 wait = min > wait ? min : wait;
             } else {
-                wait *= 1;
+                wait *= 2;
                 wait = max < wait ? max : wait;
             }
             return wait;
@@ -149,7 +156,7 @@
             name:username,
             password:password,
             success:function () {
-                utils.log('JobManager', "CouchDB authenticated");
+                logger.log('JobManager', "CouchDB authenticated");
                 couchDB = $.couch.db(dbname);
                 self.dispatchSearchJob();
             }
@@ -167,13 +174,13 @@
                 success:function (data) {
 //                        if (data.rows.length > 0) {
 //                            var job = data.rows[0].doc;
-//                            utils.log(self, "Got job:" + JSON.stringify(job));
+//                            logger.log(self, "Got job:" + JSON.stringify(job));
 //                            scrapper = new Scrapper(couchDB, job, self, interval);
 //                        } else {
 //                            if (startkey_docid !== "") {
 //                                self.dispatchSearchJob();
 //                            } else {
-//                                utils.log(self, 'No idle jobs');
+//                                logger.log(self, 'No idle jobs');
 //                            }
 //                        }
                     var job;
@@ -188,11 +195,11 @@
                             if (startkey_docid !== "") {
                                 cur_job = setTimeout(self.dispatchSearchJob(), 10000);
                             } else {
-                                utils.log(self, 'No idle jobs');
+                                logger.log(self, 'No idle jobs');
                             }
                             return;
                     }
-                    utils.log(self, "Got job:" + JSON.stringify(job));
+                    logger.log(self, "Got job:" + JSON.stringify(job));
                     scrapper = new Scrapper(couchDB, job, self, interval);
                 }
             }));
@@ -202,7 +209,7 @@
         this.next = function (interval, startkey_docid) {
             startkey_docid = typeof startkey_docid !== "undefined" ? startkey_docid : "";
             interval = typeof startkey_docid !== "undefined" ? interval: 10000;
-            utils.log(self, "start new job in " + interval/1000.0 + "sec");
+            logger.log(self, "start new job in " + interval/1000.0 + "sec");
             cur_job = setTimeout(function () {
                 self.dispatchSearchJob(startkey_docid);
             }, interval);
@@ -287,7 +294,7 @@
         };
     }
 
-    function CommentHandler(key) {
+    function CommentHandler() {
         this.url = 'http://m.weibo.cn/comment/getCmt';
         this.type = 'comment';
 
@@ -346,7 +353,7 @@
 
 
         Scrapper.prototype.toString = function () {
-            return "Scrapper[" + handler.type + key + "]";
+            return "&lt;Scrapper&gt;" + handler.type + key + "";
         };
 
         job.status = 'running';
@@ -356,17 +363,17 @@
             success:function (data) {
                 if (data.ok) {
                     job._rev = data.rev;
-                    utils.log(self, 'Started job');
+                    logger.log(self, 'Started job');
                     self.run();
                 }
                 else
-                    utils.log(self, "[Error]Job state save failed.")
+                    logger.log(self, "[Error]Job state save failed.")
             }
         }));
 
 
         function getPage(page) {
-            utils.log(self, 'Scrap page ' + page);
+            logger.log(self, 'Scrap page ' + page);
             $.getJSON(handler.url,
                 handler.getRequestParams(key, page),
                 function (data) {
@@ -374,7 +381,7 @@
                         if (job.max_page == null) {
                             // this is the first time we requested
                             job.max_page = data.maxPage;
-                            utils.log(self, 'Total pages = ' + job.max_page);
+                            logger.log(self, 'Total pages = ' + job.max_page);
                         }
                         var list = handler.getItemDict(data);
                         for (var id in list) {
@@ -405,11 +412,11 @@
                                 self + ".saveJobState", {
                                     success:function (data) {
                                         if (data.ok) {
-                                            utils.log(self, "Job finished.");
+                                            logger.log(self, "Job finished.");
                                             jobManager.next(interval.get(true), job._id);
                                         }
                                         else
-                                            utils.log(self, "[Error]Job state save failed.")
+                                            logger.log(self, "[Error]Job state save failed.")
                                     }
                                 }
                             ));
@@ -424,13 +431,13 @@
                                                     getPage(page + 1);
                                                 }, interval.get(true));
                                             } else
-                                                utils.log(self, "[Error]Job state save failed.")
+                                                logger.log(self, "[Error]Job state save failed.")
                                         }
                                     }
                                 ));
                         }
                     } else { // interrupted by weibo server
-                        utils.log(self, "[Interrupted]Not ok: " + data.msg);
+                        logger.log(self, "[Interrupted]Not ok: " + data.msg);
                         job.status = "idle";
                         job.next_page = page;
                         if ('trials' in job) {
@@ -450,7 +457,7 @@
                                             job._rev = data.rev;
                                             jobManager.next(interval.get(false), job._id);
                                         } else
-                                            utils.log(self, "[Error]Job state save failed.")
+                                            logger.log(self, "[Error]Job state save failed.")
                                     }
                                 }
                             )
@@ -461,17 +468,18 @@
 
         function saveResults(commit) {
             commit = typeof commit !== "undefined" ? commit : false;
-            if ((commit || (results.length > 50)) && (results.length > 0)) {
+            var l = results.length;
+            if ((commit || (l > 50)) && (l > 0)) {
                 // batch upload if possible
                 couchDB.bulkSave({
                     docs: results
                 }, utils.getAjaxSetting(self + '.saveState', {
                     success:function (data) {
                         results = [];
+                        logger.log(self, "commit " + l + "items to DB");
                     }
                 }));
             }
-
         }
 
         this.run = function () {
@@ -489,9 +497,9 @@
             couchDB.saveDoc(job, utils.getAjaxSetting(self + ".saveJobState", {
                 success:function (data) {
                     if (data.ok) {
-                        utils.log(self, 'Stopped job');
+                        logger.log(self, 'Stopped job');
                     } else
-                        utils.log(self, "[Error]Job state save failed.")
+                        logger.log(self, "[Error]Job state save failed.")
                 }
             }));
         }
@@ -500,11 +508,11 @@
 
     $(document).ready(function () {
         // The iframe is used only to load the cookies. Nothing is done directly with it.
-        $('<iframe width=400 height=400 id="context">')
+        $('<iframe width=%100 height=10 id="context">')
             .attr('src', weibo_url)
             .appendTo('#container');
 
-        var jm = new JobManager();
+
 
         $("<button id='stopBtn'>Stop</button>")
             .appendTo("#control")
@@ -512,6 +520,10 @@
                 jm.stop();
                 $(this).attr('disabled', 'disabled');
             });
+
+        logger.$logger = $("#logger");
+
+        var jm = new JobManager();
 
     });
 
