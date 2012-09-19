@@ -51,6 +51,13 @@ def reset_status(status):
         job['end_date'] = ''
     print db.update(jobs)
 
+def reset_running():
+    results = db.view('soup/job_by_status', reduce=False, include_docs=True, key='running')
+    jobs = [row['doc'] for row in results.rows]
+    for job in jobs:
+        job['status'] = 'idle'
+    print db.update(jobs)
+
 def reset_db():
     del server[dbname]
     global db
